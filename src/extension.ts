@@ -11,12 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "me" is now active!');
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    let disposable = vscode.commands.registerCommand('extension.formatCase', () => {
-        // The code you place here will be executed every time your command is executed
-
+    let format = (sep: string) => {
         let editor = vscode.window.activeTextEditor;
         if (!editor) {
             return; // No open text editor
@@ -38,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Find out the longest case match
         let maximumIndent = 0;
         lines.forEach((line) => {
-            let indent = line.lastIndexOf("->");
+            let indent = line.lastIndexOf(sep);
             console.log("Indent : " + indent);
             if (indent > maximumIndent)
                 maximumIndent = indent;
@@ -50,9 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
         console.log("Maximum Indent : " + maximumIndent);
 
         let newlines = lines.map((line) => {
-            let indent = line.lastIndexOf("->");
+            let indent = line.lastIndexOf(sep);
             // Replace each line with the maximum indent
-            let newline = line.replace("->", " ".repeat(maximumIndent - indent) + "->");
+            let newline = line.replace(sep, " ".repeat(maximumIndent - indent) + sep);
             console.log("Line:\n" + line + "\n" + newline);
             return newline;
         });
@@ -63,9 +58,21 @@ export function activate(context: vscode.ExtensionContext) {
             // Finally replace the text with new text
             editBuilder.replace(selectionImproved, newtext);
         });
+    };
+
+    // The command has been defined in the package.json file
+    // Now provide the implementation of the command with  registerCommand
+    // The commandId parameter must match the command field in package.json
+    let formatCase = vscode.commands.registerCommand('extension.formatCase', () => {
+        format("->");
     });
 
-    context.subscriptions.push(disposable);
+    let formatGuard = vscode.commands.registerCommand('extension.formatGuard', () => {
+        format("=");
+    });
+
+    context.subscriptions.push(formatCase);
+    context.subscriptions.push(formatGuard);
 }
 
 // this method is called when your extension is deactivated

@@ -34,6 +34,9 @@ export function activate(context: vscode.ExtensionContext) {
         let maximumIndent = 0;
         lines.forEach((line) => {
             let indent = line.lastIndexOf(sep);
+            // There might already be some formatting, that should be ignored.
+            while(line[indent-1] === " ")
+                indent--;
             console.log("Indent : " + indent);
             if (indent > maximumIndent)
                 maximumIndent = indent;

@@ -11,7 +11,8 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:extension.formatCase"
+        "onCommand:extension.formatCase",
+        "onCommand:extension.formatGuard"
     ],
     "main": "./out/extension",
     "contributes": {

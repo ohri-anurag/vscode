@@ -48,9 +48,28 @@ export function activate(context: vscode.ExtensionContext) {
         console.log("Maximum Indent : " + maximumIndent);
 
         let newlines = lines.map((line) => {
-            let indent = line.lastIndexOf(sep);
-            // Replace each line with the maximum indent
-            let newline = line.replace(sep, " ".repeat(maximumIndent - indent) + sep);
+            let indent = line.indexOf(sep);
+            if (sep.length === 1) {
+                while (line[indent+1] === sep) {
+                    indent = line.indexOf(sep, indent+2);
+                }
+            }
+            // 2 Cases:
+            // 1. Maximum Indent to be applied is larger than all current indents
+            // 2. Maximum Indent to be applied is smaller than some current indents
+
+            let newline = "";
+            if (maximumIndent >= indent) {
+                // Case 1
+                // Replace each line with the maximum indent
+                newline = line.slice(0, indent) + " ".repeat(maximumIndent - indent) + line.slice(indent);
+                // line.replace(sep, " ".repeat(maximumIndent - indent) + sep);
+            }
+            else {
+                // Case 2
+                // Remove the unnecessary indent
+                newline = line.slice(0, maximumIndent) + line.slice(indent);
+            }
             console.log("Line:\n" + line + "\n" + newline);
             return newline;
         });
@@ -74,8 +93,13 @@ export function activate(context: vscode.ExtensionContext) {
         format("=");
     });
 
+    let formatDocs = vscode.commands.registerCommand('extension.formatDocs', () => {
+        format("--");
+    });
+
     context.subscriptions.push(formatCase);
     context.subscriptions.push(formatGuard);
+    context.subscriptions.push(formatDocs);
 }
 
 // this method is called when your extension is deactivated

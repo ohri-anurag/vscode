@@ -12,7 +12,8 @@
     ],
     "activationEvents": [
         "onCommand:extension.formatCase",
-        "onCommand:extension.formatGuard"
+        "onCommand:extension.formatGuard",
+        "onCommand:extension.formatDocs"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -24,6 +25,10 @@
             {
                 "command": "extension.formatGuard",
                 "title": "Haskell :: Format Guard"
+            },
+            {
+                "command": "extension.formatDocs",
+                "title": "Haskell :: Format Docs"
             }
         ]
     },

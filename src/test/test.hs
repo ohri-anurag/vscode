@@ -20,3 +20,6 @@ toDiagram
 check xs
     | length xs == 2 = xs
     | otherwise = add xs
+
+let lastCmd   = find (sameTrain cmd . snd) nodes
+    sameTrain = (==) `on` cmdToJourneyId

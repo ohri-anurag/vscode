@@ -11,7 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "me" is now active!');
 
-    let format = (sep: string) => {
+    let format = (sep: string, search: (s: string, m: number) => number) => {
         let editor = vscode.window.activeTextEditor;
         if (!editor) {
             return; // No open text editor
@@ -33,10 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
         // Find out the longest case match
         let maximumIndent = 0;
         lines.forEach((line) => {
-            let indent = line.lastIndexOf(sep);
-            // There might already be some formatting, that should be ignored.
-            while(line[indent-1] === " ")
-                indent--;
+            let indent = search(line, 0);
             console.log("Indent : " + indent);
             if (indent > maximumIndent)
                 maximumIndent = indent;
@@ -48,12 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
         console.log("Maximum Indent : " + maximumIndent);
 
         let newlines = lines.map((line) => {
-            let indent = line.indexOf(sep);
-            if (sep.length === 1) {
-                while (line[indent+1] === sep) {
-                    indent = line.indexOf(sep, indent+2);
-                }
-            }
+            let indent = search(line, 1);
             // 2 Cases:
             // 1. Maximum Indent to be applied is larger than all current indents
             // 2. Maximum Indent to be applied is smaller than some current indents
@@ -82,19 +74,38 @@ export function activate(context: vscode.ExtensionContext) {
         });
     };
 
+    let simpleSearch = (sep: string) => {
+        return (line: string, mode: number) => {
+            let indent = line.lastIndexOf(sep);
+            // There might already be some formatting, that should be ignored.
+            while(mode === 0 && line[indent-1] === " ")
+                indent--;
+            return indent;
+        };
+    };
+
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with  registerCommand
     // The commandId parameter must match the command field in package.json
     let formatCase = vscode.commands.registerCommand('extension.formatCase', () => {
-        format("->");
+        format("->", simpleSearch("->"));
     });
 
     let formatGuard = vscode.commands.registerCommand('extension.formatGuard', () => {
-        format("=");
+        format("=", (line: string, mode: number) => {
+            let indent = line.indexOf("=");
+            while (line[indent+1] === "=") {
+                indent = line.indexOf("=", indent+2);
+            }
+            // There might already be some formatting, that should be ignored.
+            while(mode === 0 && line[indent-1] === " ")
+                indent--;
+            return indent;
+        });
     });
 
     let formatDocs = vscode.commands.registerCommand('extension.formatDocs', () => {
-        format("--");
+        format("--", simpleSearch("--"));
     });
 
     context.subscriptions.push(formatCase);

@@ -2,6 +2,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+// import { isArray } from 'util';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -108,9 +109,103 @@ export function activate(context: vscode.ExtensionContext) {
         format("--", simpleSearch("--"));
     });
 
+    let formatData = vscode.commands.registerCommand('extension.formatData', () => {
+        let editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return; // No open text editor
+        }
+        let data = editor.document.getText();
+        
+        let newData = JSON.stringify(parseList(data, 0).value, null, 4);
+        console.log(newData);
+        let lastLine = editor.document.lineAt(editor.document.lineCount - 1);
+        editor.edit((editBuilder) => {
+            if (!editor) {
+                return ;
+            }
+            // Finally replace the text with new text
+            editBuilder.replace(
+                new vscode.Range(
+                    new vscode.Position(0, 0),
+                    new vscode.Position(
+                        editor.document.lineCount - 1,
+                        lastLine.range.end.character
+                    )
+                ),
+                newData.replace(/\"/g, ''));
+        });
+        // showData(parseList(data, 0).value);
+    });
+
+    class ParseData {
+        value: Object
+        index: number
+        constructor(val: Object, i: number) {
+            this.value = val;
+            this.index = i;
+        }
+    };
+    // let showData = (data: Object) : string => {
+    //     let str = '[\n';
+    //     for (let i=0; i<data.length; ++i) {
+    //         if (isArray(data[i])) {
+    //             str += showData(data[i]) + '\n';
+    //         }
+    //         else {
+    //             str += data[i] + '\n';
+    //         }
+    //     }
+    //     str += '\n]';
+    // };
+
+    let parseList = (data: string, begin: number) : ParseData => {
+        if (data[begin+1] === ']')
+            return new ParseData([], begin+2);
+        else {
+            let items = [], i=begin, val;
+            while(data[i] !== ']'){
+                val = parseItem(data, i+1);
+                items.push(val.value);
+                i = val.index;
+            }
+            return new ParseData(items, i+1);
+        }
+    };
+
+    let parseItem = (data: string, i: number) : ParseData => {
+        if (data[i] === '[') {
+            return parseList(data, i);
+        }
+        else {
+            let j = i;
+            while(data[j] !== ']' && data[j] !== ',') {
+                if (data[j] === '(') {
+                    j = parseBracket(data, j).index;
+                }
+                ++j;
+            }
+            return new ParseData(data.substring(i, j), j);
+        }
+    };
+
+    let parseBracket = (data: string, i: number) : ParseData => {
+        if (data[i+1] === ')') {
+            return new ParseData("", i+1);
+        }
+        else {
+            let j = i+1;
+            while (data[j] !== ')') {
+                if (data[j] === '(')
+                    j = parseBracket(data, j).index;
+                ++j;
+            }
+            return new ParseData("", j);
+        }
+    };
     context.subscriptions.push(formatCase);
     context.subscriptions.push(formatGuard);
     context.subscriptions.push(formatDocs);
+    context.subscriptions.push(formatData);
 }
 
 // this method is called when your extension is deactivated

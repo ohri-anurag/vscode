@@ -13,7 +13,8 @@
     "activationEvents": [
         "onCommand:extension.formatCase",
         "onCommand:extension.formatGuard",
-        "onCommand:extension.formatDocs"
+        "onCommand:extension.formatDocs",
+        "onCommand:extension.formatData"
     ],
     "main": "./out/extension",
     "contributes": {
@@ -29,6 +30,10 @@
             {
                 "command": "extension.formatDocs",
                 "title": "Haskell :: Format Docs"
+            },
+            {
+                "command": "extension.formatData",
+                "title": "Haskell :: Format Data"
             }
         ]
     },
